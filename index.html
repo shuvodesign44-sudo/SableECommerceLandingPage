@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SABLE — Fashion that moves with you</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['Archivo', 'system-ui', 'sans-serif'] } } } };
+</script>
+
+<style>
+  :root{
+    --bone:#EFEDE8;
+    --ink:#101010;
+    --mid:#6b6b66;
+    --line:#dcd9d2;
+    --nav:rgba(239,237,232,.9);
+  }
+  *{ -webkit-font-smoothing:antialiased; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bone);
+    color:var(--ink);
+    font-family:'Archivo',system-ui,sans-serif;
+    overflow-x:clip;
+  }
+  .mid{ color:var(--mid); }
+  .line{ border-color:var(--line); }
+
+  /* Nav */
+  .nav-blur{ backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); background:var(--nav); }
+
+  /* Scroll progress */
+  #prog{ transform:scaleX(0); transform-origin:left center; }
+
+  /* Reveal */
+  .rv{ opacity:0; transform:translateY(24px); transition:opacity .9s cubic-bezier(.19,1,.22,1), transform .9s cubic-bezier(.19,1,.22,1); }
+  .rv.in{ opacity:1; transform:translateY(0); }
+
+  /* Hero load sequence */
+  .h-load{ opacity:0; transform:translateY(18px); transition:opacity 1s cubic-bezier(.19,1,.22,1), transform 1s cubic-bezier(.19,1,.22,1); }
+  .h-load.in{ opacity:1; transform:translateY(0); }
+
+  /* Hero wordmark behind model */
+  .stage{ position:relative; }
+  .wordmark{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    z-index:1; pointer-events:none;
+    font-weight:900; letter-spacing:-.04em; line-height:.82;
+    font-size:clamp(120px, 26vw, 360px);
+    color:var(--ink); opacity:.07;
+  }
+  .hero-model{ position:relative; z-index:2; }
+
+  /* Category hover */
+  .cat-img{ transition:transform .8s cubic-bezier(.19,1,.22,1); }
+  .cat-card:hover .cat-img{ transform:scale(1.09); }
+  .cat-arrow{ transition:transform .5s cubic-bezier(.19,1,.22,1); }
+  .cat-card:hover .cat-arrow{ transform:translateX(6px); }
+
+  /* Shop card */
+  .card-btn{ position:absolute; bottom:10px; left:0; right:0; opacity:0; transform:translateY(8px); transition:opacity .4s ease, transform .4s ease; }
+  .shop-card:hover .card-btn{ opacity:1; transform:translateY(0); }
+  .shop-img{ filter:grayscale(1) contrast(1.05); transition:transform .8s cubic-bezier(.19,1,.22,1); }
+  .shop-card:hover .shop-img{ transform:scale(1.03); }
+
+  /* Lookbook scroll reveal */
+  .look-img-wrap{ overflow:hidden; }
+  .look-img{
+    --p:0;
+    transform:scale(calc(1.08 - .08 * var(--p))) ;
+    clip-path:inset(calc((1 - var(--p)) * 50%) 0 calc((1 - var(--p)) * 50%) 0);
+    transition:clip-path .1s linear;
+  }
+
+  /* Season parallax img */
+  .season-img{ filter:grayscale(1) contrast(1.06); }
+
+  /* Atelier image */
+  .atelier-img{ filter:grayscale(1) contrast(1.04); }
+
+  /* Category images */
+  .cat-img-real{ filter:grayscale(1) contrast(1.08); }
+
+  /* Heart icon */
+  .heart path{ stroke:currentColor; stroke-width:1.6; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* Nav link / bag hide below 900px */
+  @media (max-width:900px){
+    .nav-links, .bag-label{ display:none; }
+  }
+
+  /* Mobile: disable hover effects */
+  @media (hover:none){
+    .cat-card:hover .cat-img{ transform:none; }
+    .shop-card:hover .card-btn{ opacity:1; transform:none; }
+    .shop-card:hover .shop-img{ transform:none; }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion:reduce){
+    *{ transition:none !important; animation:none !important; transform:none !important; }
+    .rv{ opacity:1; transform:none; }
+    .h-load{ opacity:1; transform:none; }
+    .look-img{ clip-path:none; transform:none; }
+  }
+
+  .btn-ink{ background:var(--ink); color:var(--bone); transition:opacity .3s ease; }
+  .btn-ink:hover{ opacity:.85; }
+  .btn-line{ border:1px solid var(--ink); transition:background .3s ease, color .3s ease; }
+  .btn-line:hover{ background:var(--ink); color:var(--bone); }
+
+  .num{ font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body class="bg-[var(--bone)] text-[var(--ink)]">
+
+<!-- Announcement bar -->
+<div class="w-full overflow-hidden bg-[var(--ink)] text-[var(--bone)] text-center text-[11px] tracking-[0.18em] uppercase py-2.5 font-medium">
+  Complimentary shipping on orders over £250 — Autumn 2026
+</div>
+
+<!-- Nav -->
+<nav class="sticky top-0 z-[60] nav-blur border-b line">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10 flex items-center justify-between" style="height:96px;">
+    <a href="#hero" class="font-black tracking-[-.04em] text-2xl">SABLE</a>
+    <div class="nav-links flex items-center gap-9 text-[13px] tracking-[0.14em] uppercase font-medium">
+      <a href="#cats" class="hover:opacity-60 transition-opacity">Categories</a>
+      <a href="#season" class="hover:opacity-60 transition-opacity">Season</a>
+      <a href="#shop" class="hover:opacity-60 transition-opacity">Shop</a>
+      <a href="#look" class="hover:opacity-60 transition-opacity">Lookbook</a>
+      <a href="#cloth" class="hover:opacity-60 transition-opacity">Cloth</a>
+      <a href="#atelier" class="hover:opacity-60 transition-opacity">Atelier</a>
+    </div>
+    <div class="flex items-center gap-5 text-[13px] tracking-[0.14em] uppercase font-medium">
+      <a href="#signup" class="hover:opacity-60 transition-opacity hidden sm:inline">Account</a>
+      <button class="flex items-center gap-2" id="bagBtn">
+        <span class="bag-label">Bag</span>
+        <span class="num" id="bagCount">0</span>
+      </button>
+    </div>
+  </div>
+  <div id="prog" class="h-[2px] w-full bg-[var(--ink)]"></div>
+</nav>
+
+<!-- 1. HERO -->
+<section id="hero" class="relative w-full" style="min-height:calc(100vh - 96px - 41px);">
+  <div class="stage relative w-full max-w-[1400px] mx-auto flex flex-col items-center justify-center" style="min-height:calc(100vh - 96px - 41px); padding:40px 24px;">
+    <div class="wordmark h-load" id="wm">SABLE</div>
+    <img class="hero-model h-load" id="heroModel"
+      src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/model.png"
+      alt="SABLE model"
+      style="height:clamp(420px, 72vh, 760px); width:auto; object-fit:contain;" />
+
+    <h1 class="h-load absolute top-[7%] left-6 lg:left-10 z-[4] text-[12px] tracking-[0.2em] uppercase font-medium max-w-[220px] leading-relaxed">
+      Fashion that moves with you
+    </h1>
+    <h2 class="h-load absolute bottom-[7%] right-6 lg:right-10 z-[4] text-[12px] tracking-[0.2em] uppercase font-medium text-right leading-relaxed">
+      Autumn collection 2026
+    </h2>
+    <h3 class="h-load absolute bottom-[7%] left-6 lg:left-10 z-[4] text-[11px] tracking-[0.18em] uppercase mid font-medium">
+      Scroll
+    </h3>
+  </div>
+</section>
+
+<!-- 2. CATEGORIES -->
+<section id="cats" class="rv" style="padding-top:clamp(80px,12vw,160px); padding-bottom:clamp(80px,12vw,160px);">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10">
+    <div class="flex items-end justify-between mb-12 lg:mb-16">
+      <div>
+        <p class="text-[11px] tracking-[0.2em] uppercase mid mb-3">02 — Categories</p>
+        <h2 class="text-3xl lg:text-5xl font-bold tracking-[-.02em]">Shop by category</h2>
+      </div>
+      <a href="#shop" class="hidden lg:flex items-center gap-2 text-[12px] tracking-[0.16em] uppercase font-medium hover:opacity-60 transition-opacity">
+        View all <span>→</span>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-10">
+      <a href="#shop" class="cat-card group block">
+        <div class="overflow-hidden aspect-[3/4] mb-4 bg-[var(--line)]">
+          <img class="cat-img cat-img-real w-full h-full object-cover" loading="lazy"
+            src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/cat-men.webp" alt="Outerwear" />
+        </div>
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold tracking-[-.01em]">Outerwear</h3>
+          <span class="cat-arrow text-xl">→</span>
+        </div>
+      </a>
+      <a href="#shop" class="cat-card group block">
+        <div class="overflow-hidden aspect-[3/4] mb-4 bg-[var(--line)]">
+          <img class="cat-img cat-img-real w-full h-full object-cover" loading="lazy"
+            src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/cat-women.webp" alt="Knitwear" />
+        </div>
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold tracking-[-.01em]">Knitwear</h3>
+          <span class="cat-arrow text-xl">→</span>
+        </div>
+      </a>
+      <a href="#shop" class="cat-card group block">
+        <div class="overflow-hidden aspect-[3/4] mb-4 bg-[var(--line)]">
+          <img class="cat-img cat-img-real w-full h-full object-cover" loading="lazy"
+            src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/cat-tailoring.webp" alt="Tailoring" />
+        </div>
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold tracking-[-.01em]">Tailoring</h3>
+          <span class="cat-arrow text-xl">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 3. SEASON -->
+<section id="season" class="rv" style="padding-top:clamp(80px,12vw,160px); padding-bottom:clamp(80px,12vw,160px);">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+    <div class="order-2 lg:order-1">
+      <p class="text-[11px] tracking-[0.2em] uppercase mid mb-4">03 — Season</p>
+      <h2 class="text-4xl lg:text-6xl font-bold tracking-[-.02em] leading-[1.02] mb-6">
+        Made for the<br>in-between days.
+      </h2>
+      <p class="mid text-base lg:text-lg leading-relaxed max-w-md mb-8">
+        Lightweight layers that carry you from the last warm afternoon into the first cold morning. Cut from natural cloths, built to be worn for years.
+      </p>
+      <a href="#shop" class="btn-ink inline-flex items-center px-7 py-3.5 text-[12px] tracking-[0.16em] uppercase font-semibold">
+        Shop the season
+      </a>
+    </div>
+    <div class="order-1 lg:order-2 overflow-hidden aspect-[4/5] bg-[var(--line)]" id="seasonWrap">
+      <img id="seasonImg" class="season-img w-full h-full object-cover" loading="lazy"
+        src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/season.webp" alt="Season" />
+    </div>
+  </div>
+</section>
+
+<!-- 4. SHOP -->
+<section id="shop" class="rv" style="padding-top:clamp(80px,12vw,160px); padding-bottom:clamp(80px,12vw,160px);">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10">
+    <div class="flex items-end justify-between mb-12 lg:mb-16">
+      <div>
+        <p class="text-[11px] tracking-[0.2em] uppercase mid mb-3">04 — Shop</p>
+        <h2 class="text-3xl lg:text-5xl font-bold tracking-[-.02em]">Selected pieces</h2>
+      </div>
+      <p class="hidden lg:block text-[12px] tracking-[0.14em] uppercase mid">Autumn 2026</p>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8" id="shopGrid"></div>
+  </div>
+</section>
+
+<!-- 5. LOOKBOOK -->
+<section id="look" style="padding-top:clamp(80px,12vw,160px); padding-bottom:clamp(80px,12vw,160px);">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10">
+    <div class="mb-12 lg:mb-16 rv">
+      <p class="text-[11px] tracking-[0.2em] uppercase mid mb-3">05 — Lookbook</p>
+      <h2 class="text-3xl lg:text-5xl font-bold tracking-[-.02em]">The autumn edit</h2>
+    </div>
+
+    <div class="grid grid-cols-12 gap-5 lg:gap-8">
+      <div class="col-span-12 lg:col-span-5 look-img-wrap aspect-[3/4] bg-[var(--line)]" data-look>
+        <img class="look-img w-full h-full object-cover" style="filter:grayscale(1) contrast(1.07);" loading="lazy"
+          src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/look1.webp" alt="Look 1" />
+      </div>
+      <div class="col-span-12 lg:col-span-7 look-img-wrap aspect-[3/4] lg:aspect-[4/5] bg-[var(--line)]" data-look>
+        <img class="look-img w-full h-full object-cover" style="filter:grayscale(1) contrast(1.07);" loading="lazy"
+          src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/look2.webp" alt="Look 2" />
+      </div>
+      <div class="col-span-12 lg:col-span-5 lg:col-start-3 look-img-wrap aspect-[3/4] bg-[var(--line)]" data-look>
+        <img class="look-img w-full h-full object-cover" style="filter:grayscale(1) contrast(1.07);" loading="lazy"
+          src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/atelier.webp" alt="Look 3" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. CLOTH -->
+<div id="svc"></div>
+<section id="cloth" class="rv" style="padding-top:clamp(80px,12vw,160px); padding-bottom:clamp(80px,12vw,160px); background:var(--ink); color:var(--bone);">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+    <div>
+      <p class="text-[11px] tracking-[0.2em] uppercase opacity-60 mb-4">06 — Cloth</p>
+      <h2 class="text-4xl lg:text-6xl font-bold tracking-[-.02em] leading-[1.02] mb-6">
+        Three cloths,<br>all season.
+      </h2>
+      <p class="opacity-70 text-base lg:text-lg leading-relaxed max-w-md mb-10">
+        Each cloth is woven for us in limited runs. We choose three — one for warmth, one for structure, one for movement — and cut every piece from them.
+      </p>
+
+      <dl class="grid grid-cols-1 gap-px border-t border-b" style="border-color:rgba(239,237,232,.18);">
+        <div class="flex items-baseline justify-between py-5 border-b" style="border-color:rgba(239,237,232,.18);">
+          <dt class="text-[12px] tracking-[0.14em] uppercase opacity-60">Brushed wool</dt>
+          <dd class="num text-lg font-semibold">340 GSM</dd>
+        </div>
+        <div class="flex items-baseline justify-between py-5 border-b" style="border-color:rgba(239,237,232,.18);">
+          <dt class="text-[12px] tracking-[0.14em] uppercase opacity-60">Heavy cotton</dt>
+          <dd class="num text-lg font-semibold">420 GSM</dd>
+        </div>
+        <div class="flex items-baseline justify-between py-5">
+          <dt class="text-[12px] tracking-[0.14em] uppercase opacity-60">Linen blend</dt>
+          <dd class="num text-lg font-semibold">260 GSM</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="overflow-hidden aspect-[4/5] bg-black/20">
+      <video id="clothVideo" class="w-full h-full object-cover" muted loop playsinline preload="none"
+        poster="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/cloth.webp">
+      </video>
+    </div>
+  </div>
+</section>
+
+<!-- 7. ATELIER -->
+<section id="atelier" class="rv" style="padding-top:clamp(80px,12vw,160px); padding-bottom:clamp(80px,12vw,160px);">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+    <div class="overflow-hidden aspect-[4/5] bg-[var(--line)] order-2 lg:order-1">
+      <img class="atelier-img w-full h-full object-cover" loading="lazy"
+        src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/atelier.webp" alt="Atelier" />
+    </div>
+    <div class="order-1 lg:order-2">
+      <p class="text-[11px] tracking-[0.2em] uppercase mid mb-4">07 — Atelier</p>
+      <h2 class="text-4xl lg:text-6xl font-bold tracking-[-.02em] leading-[1.02] mb-6">
+        Made by hand,<br>in our atelier.
+      </h2>
+      <p class="mid text-base lg:text-lg leading-relaxed max-w-md mb-10">
+        Every piece is cut and finished by a small team in our workshop. No outsourcing, no shortcuts — just people who know cloth.
+      </p>
+
+      <div class="grid grid-cols-3 gap-6 lg:gap-10 border-t line pt-8">
+        <div>
+          <div class="num text-4xl lg:text-6xl font-bold tracking-[-.02em]" data-count="11">0</div>
+          <p class="text-[11px] tracking-[0.16em] uppercase mid mt-2">People</p>
+        </div>
+        <div>
+          <div class="num text-4xl lg:text-6xl font-bold tracking-[-.02em]" data-count="42">0</div>
+          <p class="text-[11px] tracking-[0.16em] uppercase mid mt-2">Styles</p>
+        </div>
+        <div>
+          <div class="num text-4xl lg:text-6xl font-bold tracking-[-.02em]" data-count="120">0</div>
+          <p class="text-[11px] tracking-[0.16em] uppercase mid mt-2">Units / year</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. SIGNUP / FOOTER -->
+<section id="signup" style="padding-top:clamp(80px,12vw,160px); padding-bottom:clamp(60px,8vw,100px);">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10">
+    <div class="border-t line pt-12 lg:pt-16 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
+      <div>
+        <h2 class="text-3xl lg:text-5xl font-bold tracking-[-.02em] leading-[1.02] mb-5">
+          Stay close.
+        </h2>
+        <p class="mid text-base leading-relaxed max-w-sm mb-8">
+          One letter each season. New pieces, atelier notes, and early access — nothing more.
+        </p>
+        <form id="signupForm" class="flex max-w-md border-b line pb-3">
+          <input type="email" required placeholder="Email address"
+            class="flex-1 bg-transparent outline-none text-base placeholder:text-[var(--mid)]" />
+          <button type="submit" class="text-[12px] tracking-[0.16em] uppercase font-semibold hover:opacity-60 transition-opacity">Subscribe →</button>
+        </form>
+        <p id="signupMsg" class="text-[12px] tracking-[0.14em] uppercase mid mt-4 h-4"></p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-8 lg:gap-12 text-[13px]">
+        <div>
+          <p class="text-[11px] tracking-[0.18em] uppercase mid mb-4">SABLE Studio Ltd</p>
+          <p class="leading-relaxed">18 Redchurch Street<br>London E2 7DP<br>United Kingdom</p>
+        </div>
+        <div>
+          <p class="text-[11px] tracking-[0.18em] uppercase mid mb-4">Contact</p>
+          <p class="leading-relaxed">studio@sable.co<br>+44 (0)20 7946 0234</p>
+        </div>
+        <div>
+          <p class="text-[11px] tracking-[0.18em] uppercase mid mb-4">Shop</p>
+          <ul class="space-y-1.5">
+            <li><a href="#shop" class="hover:opacity-60 transition-opacity">Outerwear</a></li>
+            <li><a href="#shop" class="hover:opacity-60 transition-opacity">Knitwear</a></li>
+            <li><a href="#shop" class="hover:opacity-60 transition-opacity">Tailoring</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-[11px] tracking-[0.18em] uppercase mid mb-4">Studio</p>
+          <ul class="space-y-1.5">
+            <li><a href="#atelier" class="hover:opacity-60 transition-opacity">Atelier</a></li>
+            <li><a href="#cloth" class="hover:opacity-60 transition-opacity">Cloth</a></li>
+            <li><a href="#look" class="hover:opacity-60 transition-opacity">Lookbook</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row items-center justify-between gap-4 mt-16 pt-8 border-t line text-[11px] tracking-[0.16em] uppercase mid">
+      <p>© 2026 SABLE Studio Ltd</p>
+      <div class="flex items-center gap-2 font-black text-base text-[var(--ink)] tracking-[-.04em]">
+        SABLE
+      </div>
+      <div class="flex gap-5">
+        <a href="#" class="hover:opacity-60 transition-opacity">Privacy</a>
+        <a href="#" class="hover:opacity-60 transition-opacity">Terms</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Hero load sequence ---------- */
+  const loadEls = [
+    document.getElementById('wm'),
+    document.getElementById('heroModel'),
+    document.querySelector('#hero h1'),
+    document.querySelector('#hero h2'),
+    document.querySelector('#hero h3')
+  ];
+  loadEls.forEach((el,i)=>{
+    if(!el) return;
+    setTimeout(()=> el.classList.add('in'), 200 + i*140);
+  });
+
+  /* ---------- Reveal on scroll ---------- */
+  const rvEls = document.querySelectorAll('.rv');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach((e,idx)=>{
+      if(e.isIntersecting){
+        setTimeout(()=> e.target.classList.add('in'), 70 * idx);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
+  rvEls.forEach(el=> io.observe(el));
+
+  /* ---------- Scroll progress ---------- */
+  const prog = document.getElementById('prog');
+  function onScroll(){
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const p = max > 0 ? (h.scrollTop / max) : 0;
+    prog.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+
+  /* ---------- Hero parallax ---------- */
+  const wm = document.getElementById('wm');
+  const heroModel = document.getElementById('heroModel');
+  const hero = document.getElementById('hero');
+  function heroParallax(){
+    if(reduced) return;
+    const r = hero.getBoundingClientRect();
+    const vis = Math.min(1, Math.max(0, -r.top / (r.height||1)));
+    heroModel.style.transform = 'scale(' + (1 + vis*0.00006) + ') translateY(' + (-vis*0.06).toFixed(3) + 'px)';
+    wm.style.transform = 'translateY(' + (vis*0.14).toFixed(3) + 'px)';
+  }
+  window.addEventListener('scroll', heroParallax, { passive:true });
+
+  /* ---------- Season parallax ---------- */
+  const seasonWrap = document.getElementById('seasonWrap');
+  const seasonImg = document.getElementById('seasonImg');
+  function seasonParallax(){
+    if(reduced || !seasonWrap) return;
+    const r = seasonWrap.getBoundingClientRect();
+    const vh = window.innerHeight;
+    if(r.bottom < 0 || r.top > vh) return;
+    const center = (r.top + r.height/2);
+    const shift = (center - vh/2) / vh;
+    seasonImg.style.transform = 'scale(1.12) translateY(' + (shift * 40).toFixed(2) + 'px)';
+  }
+  window.addEventListener('scroll', seasonParallax, { passive:true });
+  window.addEventListener('resize', seasonParallax);
+  seasonParallax();
+
+  /* ---------- Lookbook scroll reveal ---------- */
+  const looks = document.querySelectorAll('[data-look]');
+  function lookReveal(){
+    if(reduced){ looks.forEach(l=> l.querySelector('.look-img').style.setProperty('--p',1)); return; }
+    looks.forEach(wrap=>{
+      const img = wrap.querySelector('.look-img');
+      const r = wrap.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if(r.bottom < 0 || r.top > vh) return;
+      let p = (vh*0.85 - r.top) / (vh*0.85 + r.height*0.4);
+      p = Math.min(1, Math.max(0, p));
+      img.style.setProperty('--p', p.toFixed(4));
+    });
+  }
+  window.addEventListener('scroll', lookReveal, { passive:true });
+  window.addEventListener('resize', lookReveal);
+  lookReveal();
+
+  /* ---------- Shop grid ---------- */
+  const products = [
+    { name:'Overshirt',   price:'£285', img:'p-overshirt.webp' },
+    { name:'Heavy Tee',   price:'£95',  img:'p-tee.webp' },
+    { name:'Cardigan',    price:'£340', img:'p-cardigan.webp' },
+    { name:'Merino Knit', price:'£260', img:'p-knit.webp' }
+  ];
+  const grid = document.getElementById('shopGrid');
+  let bagCount = 0;
+  const bagCountEl = document.getElementById('bagCount');
+
+  products.forEach((p,i)=>{
+    const card = document.createElement('div');
+    card.className = 'shop-card relative';
+    card.innerHTML =
+      '<div class="overflow-hidden aspect-[3/4] mb-3 bg-[var(--line)] relative">' +
+        '<img class="shop-img w-full h-full object-cover" loading="lazy" ' +
+          'src="https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/' + p.img + '" alt="' + p.name + '" />' +
+        '<button class="card-btn btn-ink mx-3 py-3 text-[11px] tracking-[0.16em] uppercase font-semibold" data-add="' + i + '">Add to bag</button>' +
+      '</div>' +
+      '<div class="flex items-baseline justify-between">' +
+        '<h3 class="text-sm font-semibold tracking-[-.01em]">' + p.name + '</h3>' +
+        '<span class="num text-sm mid">' + p.price + '</span>' +
+      '</div>';
+    grid.appendChild(card);
+  });
+
+  grid.addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-add]');
+    if(!btn) return;
+    bagCount++;
+    bagCountEl.textContent = bagCount;
+    const orig = btn.textContent;
+    btn.textContent = 'Added';
+    btn.style.opacity = '1';
+    btn.style.transform = 'translateY(0)';
+    setTimeout(()=>{
+      btn.textContent = orig;
+      btn.style.opacity = '';
+      btn.style.transform = '';
+    }, 1300);
+  });
+
+  /* ---------- Atelier count up ---------- */
+  const counters = document.querySelectorAll('[data-count]');
+  const countIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      const el = e.target;
+      const target = parseInt(el.dataset.count, 10);
+      if(reduced){ el.textContent = target; countIO.unobserve(el); return; }
+      const dur = 1600;
+      const start = performance.now();
+      const ease = (t)=> 1 - Math.pow(1 - t, 3);
+      function tick(now){
+        const t = Math.min(1, (now - start) / dur);
+        el.textContent = Math.round(target * ease(t));
+        if(t < 1) requestAnimationFrame(tick);
+        else el.textContent = target;
+      }
+      requestAnimationFrame(tick);
+      countIO.unobserve(el);
+    });
+  }, { threshold:0.5 });
+  counters.forEach(c=> countIO.observe(c));
+
+  /* ---------- Video lazy load ---------- */
+  const video = document.getElementById('clothVideo');
+  const vidIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        if(!video.querySelector('source')){
+          const src = document.createElement('source');
+          src.src = 'https://cdn.jsdelivr.net/gh/VanhDc/aura-assets@sable-v2/sable/img/cloth.mp4';
+          src.type = 'video/mp4';
+          video.appendChild(src);
+          video.load();
+          video.play().catch(()=>{});
+        }
+      }
+    });
+  }, { threshold:0.25 });
+  vidIO.observe(video);
+
+  /* ---------- Signup ---------- */
+  const form = document.getElementById('signupForm');
+  const msg = document.getElementById('signupMsg');
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    msg.textContent = 'Thank you — welcome to SABLE.';
+    form.reset();
+    setTimeout(()=> msg.textContent = '', 4000);
+  });
+
+})();
+</script>
+</body>
+</html>
